@@ -1,0 +1,32 @@
+version: '3'
+services:
+  database:
+    container_name: database
+    image: eu.gcr.io/agile-being-177015/scorpion-db-docker:latest
+    ports:
+      - "3306:3306"
+
+  redis:
+    container_name: fms-api-redis
+    image: redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - DEBUG=1
+    ports:
+      - '6379:6379'
+
+  fms-app-api:
+    build: .
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+      - /app/vendor
+    environment:
+      - DB_HOST=35.197.247.241
+      - DB_PORT=3306
+      - DB_DATABASE=scorpionfms
+      - DB_USERNAME=fms.web
+      - DB_PASSWORD=gPrSumhsBGt3nZfQtR4hrEV5g8zMk2VA
+      - REDIS_HOST=fms-api-redis:6379

@@ -1,0 +1,245 @@
+stages:
+  - build
+  - test
+  - deploy
+  - token
+  - push-container
+
+#############################################################
+# STAGING PIPELINE                                          #
+#############################################################
+build:staging:
+  stage: build
+  only:
+    - staging
+  script:
+    - cp environment/default/staging/.scorpionenv .localenv
+    - composer install
+    - npm install
+    - gulp
+  artifacts:
+    paths:
+      - app
+      - bootstrap
+      - build
+      - config
+      - database
+      - docs
+      - environment
+      - public
+      - resources
+      - routes
+      - storage
+      - vendor
+      - phpunit.xml
+      - artisan
+      - composer.json
+      - composer.lock
+    name: "${CI_JOB_STAGE}_${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 week
+
+test:staging:
+  dependencies:
+    - build:staging
+  stage: test
+  only:
+    - staging
+  script:
+    - echo "starting test for $CI_COMMIT_SHA.ci.testing.api.fleet.scorpiontrack.com"
+    - export WEB_DIR=/var/www/ci.testing.api2.fleet.scorpiontrack.com
+    - sed -i "s/{{CI_COMMIT_REF}}/$CI_COMMIT_SHA/g" environment/default/testing/.scorpionenv
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/$CI_COMMIT_SHA"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/$CI_COMMIT_SHA -R"
+    - tar --exclude=".git" -cf $CI_COMMIT_SHA.tar.bz2 .
+    - gcloud compute scp --zone "europe-west2-a" $CI_COMMIT_SHA.tar.bz2 "fms-api:$WEB_DIR/$CI_COMMIT_SHA.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo tar -xf $WEB_DIR/$CI_COMMIT_SHA.tar.bz2 -C $WEB_DIR/$CI_COMMIT_SHA"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm $WEB_DIR/$CI_COMMIT_SHA.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/$CI_COMMIT_SHA/environment/default/testing/.scorpionenv $WEB_DIR/$CI_COMMIT_SHA/.scorpionenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/$CI_COMMIT_SHA/environment/default/testing/.scorpionenv $WEB_DIR/$CI_COMMIT_SHA/.localenv"
+    # hack for lumen installer not sysmlinking
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/$CI_COMMIT_SHA && sudo rm vendor -rf && composer install"
+    # end hack
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/$CI_COMMIT_SHA -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/$CI_COMMIT_SHA && php ./vendor/bin/phpunit --debug --verbose --tap"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm -rf $WEB_DIR/$CI_COMMIT_SHA"
+
+deploy:staging:
+  stage: deploy
+  dependencies:
+    - build:staging
+  only:
+    - staging
+  environment:
+    name: staging
+    url: https://staging.api2.fleet.scorpiontrack.com
+  script:
+    - export RELEASE_TAG=`date +"%FT%H%M%S"`-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
+    - export WEB_DIR=/var/www/staging.api2.fleet.scorpiontrack.com
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/releases"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/releases -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/current"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/current -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/releases/$RELEASE_TAG"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/releases/$RELEASE_TAG -R"
+    - tar --exclude=".git" -cf $RELEASE_TAG.tar.bz2 .
+    - gcloud compute scp --zone "europe-west2-a" $RELEASE_TAG.tar.bz2 "fms-api:$WEB_DIR/releases/$RELEASE_TAG.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo tar -xf $WEB_DIR/releases/$RELEASE_TAG.tar.bz2 -C $WEB_DIR/releases/$RELEASE_TAG"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm $WEB_DIR/releases/$RELEASE_TAG.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm -rf $WEB_DIR/current && sudo ln -s $WEB_DIR/releases/$RELEASE_TAG $WEB_DIR/current"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/staging/.scorpionenv $WEB_DIR/current/.scorpionenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/staging/.trakkingenv $WEB_DIR/current/.trakkingenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/staging/.scorpionenv $WEB_DIR/current/.localenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/current -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo service php7.1-fpm restart"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo service nginx restart"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/releases && ls -dt */ | tail -n +6 | sudo xargs rm -rf"
+
+#############################################################
+# PRODUCTION PIPELINE                                       #
+#############################################################
+build:production:
+  stage: build
+  only:
+    - master
+  script:
+    - cp environment/default/staging/.scorpionenv .localenv
+    - composer install
+    - npm install
+    - gulp
+  artifacts:
+    paths:
+      - app
+      - bootstrap
+      - build
+      - config
+      - database
+      - docs
+      - environment
+      - public
+      - resources
+      - routes
+      - storage
+      - vendor
+      - phpunit.xml
+      - artisan
+      - composer.json
+      - composer.lock
+    name: "${CI_JOB_STAGE}_${CI_JOB_NAME}_${CI_COMMIT_SHA}"
+    expire_in: 1 week
+
+test:production:
+  dependencies:
+    - build:production
+  stage: test
+  only:
+    - master
+  script:
+    - echo "starting test for $CI_COMMIT_SHA.ci.testing.api.fleet.scorpiontrack.com"
+    - export WEB_DIR=/var/www/ci.testing.api2.fleet.scorpiontrack.com
+    - sed -i "s/{{CI_COMMIT_REF}}/$CI_COMMIT_SHA/g" environment/default/testing/.scorpionenv
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/$CI_COMMIT_SHA"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/$CI_COMMIT_SHA -R"
+    - tar --exclude=".git" -cf $CI_COMMIT_SHA.tar.bz2 .
+    - gcloud compute scp --zone "europe-west2-a" $CI_COMMIT_SHA.tar.bz2 "fms-api:$WEB_DIR/$CI_COMMIT_SHA.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo tar -xf $WEB_DIR/$CI_COMMIT_SHA.tar.bz2 -C $WEB_DIR/$CI_COMMIT_SHA"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm $WEB_DIR/$CI_COMMIT_SHA.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/$CI_COMMIT_SHA/environment/default/testing/.scorpionenv $WEB_DIR/$CI_COMMIT_SHA/.scorpionenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/$CI_COMMIT_SHA/environment/default/testing/.scorpionenv $WEB_DIR/$CI_COMMIT_SHA/.localenv"
+    # hack for lumen installer not sysmlinking
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/$CI_COMMIT_SHA && sudo rm vendor -rf && composer install"
+    # end hack
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/$CI_COMMIT_SHA -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/$CI_COMMIT_SHA && php ./vendor/bin/phpunit --debug --verbose --tap"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm -rf $WEB_DIR/$CI_COMMIT_SHA"
+
+deploy:production:fms:
+  stage: deploy
+  dependencies:
+    - build:production
+  only:
+    - master
+  environment:
+    name: production
+    url: https://api2.fleet.scorpiontrack.com
+  script:
+    - export RELEASE_TAG=`date +"%FT%H%M%S"`-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
+    - export WEB_DIR=/var/www/api2.fleet.scorpiontrack.com
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/releases"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/releases -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/current"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/current -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo mkdir -p $WEB_DIR/releases/$RELEASE_TAG"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/releases/$RELEASE_TAG -R"
+    - tar --exclude=".git" -cf $RELEASE_TAG.tar.bz2 .
+    - gcloud compute scp --zone "europe-west2-a" $RELEASE_TAG.tar.bz2 "fms-api:$WEB_DIR/releases/$RELEASE_TAG.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo tar -xf $WEB_DIR/releases/$RELEASE_TAG.tar.bz2 -C $WEB_DIR/releases/$RELEASE_TAG"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm $WEB_DIR/releases/$RELEASE_TAG.tar.bz2"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo rm -rf $WEB_DIR/current && sudo ln -s $WEB_DIR/releases/$RELEASE_TAG $WEB_DIR/current"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/production/.scorpionenv $WEB_DIR/current/.scorpionenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/production/.trakkingenv $WEB_DIR/current/.trakkingenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/production/.otlenv $WEB_DIR/current/.otlenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo cp $WEB_DIR/current/environment/default/production/.scorpionenv $WEB_DIR/current/.localenv"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo chmod 777 $WEB_DIR/current -R"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo service php7.4-fpm restart"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "sudo service nginx restart"
+    - gcloud compute ssh --zone "europe-west2-a" "fms-api" --command "cd $WEB_DIR/releases && ls -dt */ | tail -n +6 | sudo xargs rm -rf"
+
+
+token:
+  stage: token
+  script:
+    - gcloud auth print-access-token > token
+  artifacts:
+    untracked: true
+
+push-container:
+  stage: push-container
+  script:
+    - docker build . -t $IMAGE_NAME:$CI_COMMIT_SHA --build-arg GITLAB_ACCESS_TOKEN=$GITLAB_ACCESS_TOKEN --build-arg GITHUB_ACCESS_TOKEN=$GITHUB_ACCESS_TOKEN
+    - docker tag $IMAGE_NAME:$CI_COMMIT_SHA $CONTAINER_REPO/$IMAGE_NAME:$CI_COMMIT_SHA
+    - docker tag $IMAGE_NAME:$CI_COMMIT_SHA $CONTAINER_REPO/$IMAGE_NAME:$CI_COMMIT_REF_NAME
+    - docker login -u oauth2accesstoken -p $(cat token) https://eu.gcr.io
+    - docker push $CONTAINER_REPO/$IMAGE_NAME:$CI_COMMIT_SHA
+    - docker push $CONTAINER_REPO/$IMAGE_NAME:$CI_COMMIT_REF_NAME
+  tags:
+    - docker-in-docker
+  services:
+    - docker:stable-dind
+  dependencies:
+    - token
+variables:
+  CONTAINER_REPO: eu.gcr.io/agile-being-177015
+  IMAGE_NAME: fms-app-api
+
+deploy:production:oman:
+  allow_failure: true
+  stage: deploy
+  dependencies:
+    - build:production
+  only:
+    - master
+  tags:
+    - oman1
+  environment:
+    name: oman/production
+    url: https://api.oman.scorpiontrack.com
+  script:
+    - export RELEASE_TAG=`date +"%FT%H%M%S"`-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
+    - export WEB_DIR=/var/www/api.oman.scorpiontrack.com
+    - sudo mkdir -p $WEB_DIR/releases
+    - sudo chmod 777 $WEB_DIR/releases -R
+    - sudo mkdir -p $WEB_DIR/current
+    - sudo chmod 777 $WEB_DIR/current -R
+    - sudo mkdir -p $WEB_DIR/releases/$RELEASE_TAG
+    - sudo chmod 777 $WEB_DIR/releases/$RELEASE_TAG -R
+    - tar --exclude=".git" -cf $RELEASE_TAG.tar.bz2 .
+    - sudo cp $RELEASE_TAG.tar.bz2 $WEB_DIR/releases/$RELEASE_TAG.tar.bz2
+    - sudo tar -xf $WEB_DIR/releases/$RELEASE_TAG.tar.bz2 -C $WEB_DIR/releases/$RELEASE_TAG
+    - sudo rm $WEB_DIR/releases/$RELEASE_TAG.tar.bz2
+    - sudo rm -rf $WEB_DIR/current && sudo ln -s $WEB_DIR/releases/$RELEASE_TAG $WEB_DIR/current
+    - sudo cp $WEB_DIR/current/environment/oman/production/.scorpionenv $WEB_DIR/current/.scorpionenv
+    - sudo cp $WEB_DIR/current/environment/oman/production/.scorpionenv $WEB_DIR/current/.localenv
+    - sudo chmod 777 $WEB_DIR/current -R
+    - sudo service php7.1-fpm restart
+    - sudo service nginx restart
+

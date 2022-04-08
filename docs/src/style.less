@@ -1,0 +1,1158 @@
+/* Basic page-wide colors */
+@background-color: white;
+@text-color: #333;
+
+@link-color: #42A5F5;
+@right-link-color: @link-color;
+
+/* Notes and warnings */
+@note-text-color: @text-color;
+@note-title-text-color: #3498db;
+@note-background-color: mix(@note-title-text-color, @background-color, 8%);
+@note-border-color: @note-title-text-color;
+
+@warning-text-color: @text-color;
+@warning-title-text-color: darken(#e74c3c, 10%);
+@warning-background-color: mix(@warning-title-text-color, @background-color, 7%);
+@warning-border-color: @warning-title-text-color;
+
+/* HTTP method-specific colors */
+@group-background-color: @background-color;
+@group-title-background-color: transparent;
+@group-border-color: transparent;
+@group-text-color: @group-background-color;
+
+/* HTTP GET */
+@get-color: white;
+@get-background-color: #5C6BC0;
+@get-text-color: @get-background-color;
+@get-badge-text-color: white;
+@get-border-color: #5C6BC0;
+
+/* HTTP HEAD */
+@head-color: @get-color;
+@head-background-color: @get-background-color;
+@head-text-color: @get-text-color;
+@head-badge-text-color: @get-badge-text-color;
+@head-border-color: @get-border-color;
+
+/* HTTP OPTIONS */
+@options-color: @get-color;
+@options-background-color: @get-background-color;
+@options-text-color: @get-text-color;
+@options-badge-text-color: @get-badge-text-color;
+@options-border-color: @get-border-color;
+
+/* HTTP PUT */
+@put-color: white;
+@put-background-color: #FFA726;
+@put-text-color: @put-background-color;
+@put-badge-text-color: white;
+@put-border-color: @put-background-color;
+
+/* HTTP PATCH */
+@patch-color: @put-color;
+@patch-background-color: @put-background-color;
+@patch-text-color: @put-text-color;
+@patch-badge-text-color: @put-badge-text-color;
+@patch-border-color: @put-border-color;
+
+/* HTTP POST */
+@post-color: white;
+@post-background-color: #26A69A;
+@post-text-color: @post-background-color;
+@post-badge-text-color: white;
+@post-border-color: @post-background-color;
+
+/* HTTP DELETE */
+@delete-color: white;
+@delete-background-color: #EF5350;
+@delete-text-color: @delete-background-color;
+@delete-badge-text-color: white;
+@delete-border-color: @delete-background-color;
+
+/* Code colors */
+@title-code-background-color: rgba(255, 255, 255, 0.7);
+@title-code-border-color: transparent;
+
+@right-background-color: #2d3134;
+@right-code-block-background-color: #272b2d;
+@right-tabs-background-color: lighten(@right-background-color, 10%);
+
+@nav-background-color: lighten(@right-background-color, 70%);
+
+@border-radius: 0;
+@base-font: 400 16px / 1.6 'Lato', Helvetica, sans-serif;
+@title-font: 400 36px 'Lato', Helvetica, sans-serif;
+
+@nav-width: 11%;
+@nav-triple-width: @nav-width;
+
+/* Element styles */
+body {
+  color: @text-color;
+  background: @background-color;
+  font: @base-font;
+  overflow-x: hidden;
+}
+
+header {
+  border-bottom: 1px solid @group-title-background-color;
+  margin-bottom: @padding;
+}
+
+h1, h2, h3, h4, h5 {
+  color: @heading-text-color;
+  margin: @padding 0;
+
+  & .permalink {
+    margin-left: 0;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover .permalink {
+    opacity: 1;
+  }
+
+  // Chrome makes the *text* disappear after hover rather than the permalink
+  // itself... weird bug so we're disabling the fading for now. The key
+  // to the issue is the `position: relative` on the `.triple .content`
+  // container (disabling that rule fixes the problem, hence why it works
+  // in the two-column theme).
+  .triple & .permalink {
+    opacity: 0.15;
+  }
+
+  .triple &:hover .permalink {
+    opacity: 0.15;
+  }
+}
+
+h1 {
+  font: @title-font;
+  font-size: 36px;
+}
+
+h2 {
+  font: @title-font;
+  font-size: 30px;
+}
+
+h3 {
+  font-size: 100%;
+  text-transform: uppercase;
+}
+
+h5 {
+  font-size: 100%;
+  font-weight: normal;
+}
+
+p {
+  margin: 0 0 10px;
+
+  &.choices {
+    line-height: 1.6;
+  }
+}
+
+a {
+  color: @link-color;
+  text-decoration: none;
+}
+
+li {
+  p {
+    margin: 0;
+  }
+}
+
+hr.split {
+  border: 0;
+  height: 1px;
+  width: 100%;
+  padding-left: @padding / 2;
+  margin: @padding auto;
+  background: lighten(@right-tabs-background-color, 25%);
+  opacity: .3;
+}
+
+dl {
+  dt {
+    float: left;
+    width: 130px;
+    clear: left;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  dd {
+    margin-left: 150px;
+  }
+}
+
+blockquote {
+  color: fadeout(@text-color, 50%);
+  font-size: 15.5px;
+  padding: 10px 20px;
+  margin: @padding 0;
+  border-left: 5px solid @quote-border-color;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+pre {
+  background-color: @code-block-background-color;
+  padding: @padding;
+  border: 1px solid @code-block-border-color;
+  border-radius: @border-radius;
+  overflow: auto;
+
+  code {
+    color: @code-block-text-color;
+    background-color: transparent;
+    padding: 0;
+    border: none;
+  }
+}
+
+code {
+  color: @inline-code-text-color;
+  background-color: @inline-code-background-color;
+  font: @code-font;
+  padding: 1px 4px;
+  border: 1px solid @code-block-border-color;
+  border-radius: 3px;
+}
+
+ul, ol {
+  padding-left: 2em;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin-bottom: @padding;
+
+  tr:nth-child(2n) {
+    background-color: @table-row-background-color;
+  }
+
+  th, td {
+    padding: @padding/2 @padding;
+    border: 1px solid @table-border-color;
+  }
+}
+
+.text-muted {
+  opacity: 0.5;
+}
+
+.note, .warning {
+  padding: 0.3em 1em;
+  margin: 1em 0;
+  border-radius: 2px;
+  font-size: 90%;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: @title-font;
+    font-size: 135%;
+    font-weight: 500;
+  }
+
+  p {
+    margin: 0.5em 0;
+  }
+}
+
+.note {
+  color: @note-text-color;
+  background-color: @note-background-color;
+  border-left: 4px solid @note-border-color;
+
+  h1, h2, h3, h4, h5, h6 {
+    color: @note-title-text-color;
+  }
+}
+
+.warning {
+  color: @warning-text-color;
+  background-color: @warning-background-color;
+  border-left: 4px solid @warning-border-color;
+
+  h1, h2, h3, h4, h5, h6 {
+    color: @warning-title-text-color;
+  }
+}
+
+header {
+  margin-top: @padding * 2;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding-top: 15px;
+
+  .resource-group {
+    margin-right: 5px;
+    padding: 0;
+
+    .heading {
+      position: relative;
+
+      .chevron {
+        position: absolute;
+        top: @padding;
+        right: @padding;
+        opacity: 0.5;
+      }
+
+      a {
+        display: block;
+        color: @text-color;
+        opacity: 0.7;
+        border-left: 2px solid transparent;
+        margin: 0;
+
+        &:hover {
+          text-decoration: @nav-hover-text-decoration;
+          background-color: @nav-hover-background-color;
+          border-left: 2px solid @nav-hover-border-color;
+        }
+      }
+    }
+  }
+
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+
+    a {
+      display: block;
+      font-size: 13 * @font-size / 14;
+      color: fade(@text-color, 70%);
+      padding: (2 * @padding / 3) @padding;
+      border-top: 1px solid @group-border-color;
+      border-left: 2px solid transparent;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration: @nav-hover-text-decoration;
+        background-color: @nav-hover-background-color;
+        border-left: 2px solid @nav-hover-border-color;
+      }
+    }
+
+    /* Spacing for first level items */
+    & > li {
+      margin: 0;
+
+      &:first-child {
+        margin-top: -@padding;
+      }
+
+      &:last-child {
+        margin-bottom: -@padding;
+      }
+    }
+
+    /* Adjust spacing for nested lists */
+    ul {
+      a {
+        padding-left: @padding * 2;
+      }
+
+      li {
+        margin: 0;
+
+        &:first-child {
+          margin-top: 0;
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+
+  /* Remove the top border from the first item in each group */
+  & > div > div > ul > li:first-child > a {
+    border-top: none;
+  }
+}
+
+/* Generic classes */
+.preload * {
+  transition: none !important;
+}
+
+.pull-left {
+  float: left;
+}
+
+.pull-right {
+  float: right;
+}
+
+.badge {
+  display: inline-block;
+  float: right;
+  min-width: 10px;
+  min-height: @font-size;
+  padding: 3px 7px;
+  font-size: 12px;
+  color: @group-text-color;
+  background-color: @group-title-background-color;
+  border-radius: 10px;
+  margin: @badge-margin;
+
+  &.get {
+    color: @get-badge-text-color;
+    background-color: @get-background-color;
+  }
+
+  &.head {
+    color: @head-badge-text-color;
+    background-color: @head-background-color;
+  }
+
+  &.options {
+    color: @options-badge-text-color;
+    background-color: @options-background-color;
+  }
+
+  &.put {
+    color: @put-badge-text-color;
+    background-color: @put-background-color;
+  }
+
+  &.patch {
+    color: @patch-badge-text-color;
+    background-color: @patch-background-color;
+  }
+
+  &.post {
+    color: @post-badge-text-color;
+    background-color: @post-background-color;
+  }
+
+  &.delete {
+    color: @delete-badge-text-color;
+    background-color: @delete-background-color;
+  }
+}
+
+.collapse-button {
+  float: right;
+
+  .close {
+    display: none;
+    color: @link-color;
+    cursor: pointer;
+  }
+
+  .open {
+    color: @link-color;
+    cursor: pointer;
+  }
+
+  &.show {
+    .close {
+      display: inline;
+    }
+
+    .open {
+      display: none;
+    }
+  }
+}
+
+.collapse-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+/* Layout classes */
+nav {
+  width: @nav-width;
+}
+
+.container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+
+  .row {
+    .content {
+      margin-left: @nav-width + (@padding * 2);
+      width: 720px - (@padding * 2);
+    }
+
+    &:after {
+      content: '';
+      display: block;
+      clear: both;
+    }
+  }
+}
+
+.container-fluid {
+  nav {
+    width: 22%;
+  }
+
+  .row {
+    .content {
+      margin-left: 24%;
+    }
+  }
+
+  &.triple {
+    nav {
+      width: @nav-triple-width;
+      padding-right: 0;
+    }
+
+    .row .content {
+      position: relative;
+      margin-left: @nav-triple-width;
+      padding-left: @padding * 2;
+    }
+  }
+}
+
+.middle:before, .middle:after {
+  content: '';
+  display: table;
+}
+
+.middle:after {
+  clear: both;
+}
+
+.middle {
+  box-sizing: border-box;
+  width: 100% - @right-panel-width;
+  padding-right: @padding;
+}
+
+.right {
+  box-sizing: border-box;
+  float: right;
+  width: @right-panel-width;
+  padding-left: @padding;
+
+  a {
+    color: @right-link-color;
+  }
+
+  h1, h2, h3, h4, h5, p, div {
+    color: @right-text-color;
+  }
+
+  pre {
+    background-color: @right-code-block-background-color;
+    border: 1px solid @right-code-block-border-color;
+
+    code {
+      color: @right-code-block-text-color;
+    }
+  }
+
+  .description {
+    margin-top: @padding;
+  }
+}
+
+.triple .resource-heading {
+  font-size: 125%;
+}
+
+.definition {
+  margin-top: @padding;
+  margin-bottom: @padding;
+
+  .method {
+    font-weight: bold;
+
+    &.get {
+      color: @get-background-color;
+    }
+
+    &.head {
+      color: @head-background-color;
+    }
+
+    &.options {
+      color: @options-background-color;
+    }
+
+    &.post {
+      color: @post-background-color;
+    }
+
+    &.put {
+      color: @put-background-color;
+    }
+
+    &.patch {
+      color: @patch-background-color;
+    }
+
+    &.delete {
+      color: @delete-background-color;
+    }
+  }
+
+  .uri {
+    word-break: break-all;
+    word-wrap: break-word;
+  }
+
+  .hostname {
+    opacity: 0.5;
+  }
+}
+
+.example-names {
+  background-color: @tabs-background-color;
+  padding: @padding;
+  border-radius: @border-radius;
+
+  .tab-button {
+    cursor: pointer;
+    color: @text-color;
+    border: 1px solid @tabs-border-color;
+    padding: @padding / 2;
+    margin-left: @padding;
+
+    &.active {
+      background-color: @tabs-active-background-color;
+    }
+  }
+}
+
+.right .example-names {
+  background-color: @right-tabs-background-color;
+
+  .tab-button {
+    color: @right-text-color;
+    border: 1px solid @right-tabs-border-color;
+    border-radius: @border-radius;
+
+    &.active {
+      background-color: @right-tabs-active-background-color;
+    }
+  }
+}
+
+#nav-background {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: @nav-triple-width;
+  padding-right: @padding * 1.2;
+  background-color: @nav-background-color;
+  border-right: 1px solid @nav-border-color;
+  z-index: -1;
+}
+
+#right-panel-background {
+  position: absolute;
+  right: -@padding;
+  top: -@padding;
+  bottom: -@padding;
+  width: @right-panel-background-width;
+  background-color: @right-background-color;
+  z-index: -1;
+}
+
+@media (max-width: 1200px) {
+  nav {
+    width: @nav-width * 0.9;
+  }
+
+  .container {
+    max-width: 840px;
+
+    .row {
+      .content {
+        margin-left: 200px + (@padding * 2);
+        width: 630px - (@padding * 2);
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+  nav {
+    width: @nav-width * 0.77;
+  }
+
+  .container {
+    max-width: 720px;
+
+    .row {
+      .content {
+        margin-left: 170px + (@padding * 2);
+        width: 550px - (@padding * 2);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  nav {
+    display: none;
+  }
+
+  .container {
+    width: 95%;
+    max-width: none;
+  }
+
+  .container .row, .container-fluid .row, .container-fluid.triple .row {
+    .content {
+      margin-left: auto;
+      margin-right: auto;
+      width: 95%;
+    }
+  }
+
+  #nav-background {
+    display: none;
+  }
+
+  #right-panel-background {
+    width: @right-panel-background-width;
+  }
+}
+
+/* Context-specific and API color classes */
+.back-to-top {
+  position: fixed;
+  z-index: 1;
+  bottom: 0px;
+  right: 24px;
+  padding: 4px 8px;
+  color: fadeout(@text-color, 50%);
+  background-color: @group-title-background-color;
+  text-decoration: none !important;
+  border-top: 1px solid @group-border-color;
+  border-left: 1px solid @group-border-color;
+  border-right: 1px solid @group-border-color;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+
+.resource-group {
+  padding: @group-padding;
+  margin-bottom: @padding;
+  background-color: @group-background-color;
+  border: 1px solid @group-border-color;
+  border-radius: @border-radius;
+
+  h2.group-heading, .heading a {
+    padding: 0;
+    margin: @group-header-margin;
+    background-color: @group-title-background-color;
+    border-bottom: 1px solid @group-border-color;
+    border-top-left-radius: @border-radius;
+    border-top-right-radius: @border-radius;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}
+
+.triple .content .resource-group {
+  padding: 0;
+  border: none;
+
+  h2.group-heading, .heading a {
+    margin: 0 0 @padding 0;
+    border: 1px solid @group-border-color;
+  }
+}
+
+nav .resource-group {
+  .heading a {
+    padding: @padding;
+    margin-bottom: 0;
+  }
+
+  .collapse-content {
+    padding: 0;
+  }
+}
+
+.action {
+  margin-bottom: @padding;
+  padding: @padding @padding @padding @padding;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: @border-radius;
+
+  h4.action-heading {
+    padding: @padding / 2 @padding;
+    margin: -@padding -@padding @padding -@padding;
+    border-bottom: 1px solid transparent;
+    border-top-left-radius: @border-radius;
+    border-top-right-radius: @border-radius;
+    overflow: hidden;
+
+    .name {
+      float: right;
+      font-weight: normal;
+      padding: @padding / 2 0;
+    }
+
+    .method {
+      padding: @padding / 2 @padding;
+      margin-right: @padding;
+      border-radius: ceil(@border-radius / 2);
+      display: inline-block;
+
+      &.get {
+        color: contrast(@get-color);
+        background-color: @get-color;
+      }
+
+      &.head {
+        color: contrast(@head-color);
+        background-color: @head-color;
+      }
+
+      &.options {
+        color: contrast(@options-color);
+        background-color: @options-color;
+      }
+
+      &.put {
+        color: contrast(@put-color);
+        background-color: @put-color;
+      }
+
+      &.patch {
+        color: contrast(@patch-color);
+        background-color: @patch-color;
+      }
+
+      &.post {
+        color: contrast(@post-color);
+        background-color: @post-color;
+      }
+
+      &.delete {
+        color: contrast(@delete-color);
+        background-color: @delete-color;
+      }
+    }
+
+    code {
+      color: @title-code-text-color;
+      background-color: @title-code-background-color;
+      border-color: @title-code-border-color;
+      font-weight: normal;
+      word-break: break-all;
+      display: inline-block;
+      margin-top: 2px;
+    }
+  }
+
+  dl.inner {
+    padding-bottom: 2px;
+  }
+
+  .title {
+    border-bottom: 1px solid lighten(@right-tabs-background-color, 50%);
+    margin: 0 -@padding -1px -@padding;
+    padding: @padding;
+  }
+
+  &.get {
+    border-color: @get-border-color;
+
+    h4.action-heading {
+      color: @get-color;
+      background: @get-background-color;
+      border-bottom-color: @get-border-color;
+    }
+  }
+
+  &.head {
+    border-color: @head-border-color;
+
+    h4.action-heading {
+      color: @head-color;
+      background: @head-background-color;
+      border-bottom-color: @head-border-color;
+    }
+  }
+
+  &.options {
+    border-color: @options-border-color;
+
+    h4.action-heading {
+      color: @options-color;
+      background: @options-background-color;
+      border-bottom-color: @options-border-color;
+    }
+  }
+
+  &.post {
+    border-color: @post-border-color;
+
+    h4.action-heading {
+      color: @post-color;
+      background: @post-background-color;
+      border-bottom-color: @post-border-color;
+    }
+  }
+
+  &.put {
+    border-color: @put-border-color;
+
+    h4.action-heading {
+      color: @put-color;
+      background: @put-background-color;
+      border-bottom-color: @put-border-color;
+    }
+  }
+
+  &.patch {
+    border-color: @patch-border-color;
+
+    h4.action-heading {
+      color: @patch-color;
+      background: @patch-background-color;
+      border-bottom-color: @patch-border-color;
+    }
+  }
+
+  &.delete {
+    border-color: @delete-border-color;
+
+    h4.action-heading {
+      color: @delete-color;
+      background: @delete-background-color;
+      border-bottom-color: @delete-border-color;
+    }
+  }
+}
+
+pre, code {
+  font-family: Source Code Pro, Menlo, monospace !important;
+  font-weight: 500;
+}
+
+.triple .resource-heading {
+  font-weight: 500;
+  text-transform: none;
+}
+
+.permalink {
+  opacity: 0 !important;
+  transition: opacity .05s ease !important;
+}
+
+.group-heading:hover .permalink, .resource-heading:hover .permalink {
+  opacity: .25 !important;
+}
+
+.sidebar {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-right: 1px solid lighten(#c6cacd, 5%);
+  width: @nav-width;
+  position: fixed;
+
+  header.nav-header {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: @nav-width;
+    margin-top: 0;
+    border-bottom: 1px solid lighten(#c6cacd, 5%);
+
+    h1 {
+      left: 0;
+      right: 0;
+      position: absolute;
+      top: 0;
+      padding: 25px 12px;
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    img {
+      max-height: 90px;
+      padding: 15px;
+    }
+  }
+
+  nav {
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 130px;
+  }
+}
+
+nav .resource-group .heading a {
+  //font-size: 115%;
+  color: #111 !important;
+  opacity: .9 !important;
+
+  border: none;
+}
+
+nav .resource-group .heading a:hover {
+  border: none;
+  text-decoration: underline;
+}
+
+nav ul a {
+  font-size: 16px;
+}
+
+nav ul a, nav .resource-group .heading a {
+  padding: 6px 12px;
+}
+
+.resource-group .heading a {
+  border: none;
+  padding: 6px 12px;
+}
+
+.collapse-content a {
+  border-left: none;
+  border-top: none;
+}
+
+.collapse-content a:hover {
+  border-left: none;
+  border-top: none;
+  text-decoration: underline;
+}
+
+.collapse-content > ul > li > a {
+  padding-left: 12px + 10px;
+}
+
+.collapse-content > ul > li > ul > li > a {
+  padding-left: 12px + 20px;
+}
+
+.circle {
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  float: right;
+  background-color: transparent;
+  border-radius: 100%;
+  margin-top: 7px;
+
+  &.get {
+    color: @get-badge-text-color;
+    background-color: @get-background-color;
+  }
+
+  &.head {
+    color: @head-badge-text-color;
+    background-color: @head-background-color;
+  }
+
+  &.options {
+    color: @options-badge-text-color;
+    background-color: @options-background-color;
+  }
+
+  &.put {
+    color: @put-badge-text-color;
+    background-color: @put-background-color;
+  }
+
+  &.patch {
+    color: @patch-badge-text-color;
+    background-color: @patch-background-color;
+  }
+
+  &.post {
+    color: @post-badge-text-color;
+    background-color: @post-background-color;
+  }
+
+  &.delete {
+    color: @delete-badge-text-color;
+    background-color: @delete-background-color;
+  }
+}
+
+.parameter-table {
+  margin: 15px 0;
+
+  th, td {
+    vertical-align: top;
+    border-color: transparent;
+
+    &.example-col {
+      width: 100%;
+    }
+
+    &.param-col {
+      min-width: 250px;
+    }
+  }
+
+  code, span {
+    margin-right: 5px;
+  }
+
+  .required, .optional {
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .required {
+    color: #EF6C00;
+  }
+
+  .optional {
+    color: #BDBDBD;
+  }
+
+  .param-name {
+    display: block;
+    width: 100%;
+    color: #222;
+    font-weight: 500;
+    padding-bottom: 5px;
+  }
+
+  .param-type {
+    font-size: 12px;
+    display: inline-block;
+    margin-right: 10px;
+    text-align: center;
+    min-width: 55px;
+  }
+}

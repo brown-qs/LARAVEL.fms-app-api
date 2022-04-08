@@ -1,0 +1,32 @@
+<?php
+
+return [
+    'aliases'               => [
+        'Fractal'              => Spatie\Fractal\FractalFacade::class,
+        'Bench'                => App\Support\Facades\Bench::class,
+        'Lang'                 => Illuminate\Support\Facades\Lang::class,
+        'Internationalisation' => App\Support\Facades\Internationalisation::class,
+        'EmailAPI'             => App\Support\Facades\EmailAPI::class,
+        'SMSAPI'             => App\Support\Facades\SMSAPI::class,
+        'PDF'                  => Barryvdh\DomPDF\Facade::class,
+    ],
+    'debug'                 => env('APP_DEBUG', false),
+    'forceShowDebug'        => env('APP_FORCE_SHOW_DEBUG', false),
+    'allowDebugParameter'   => env('APP_ALLOW_DEBUG_PARAMETER', false),
+    'showDebug'             => false,
+    'cipher'                => 'AES-256-CBC',
+    'timezone'              => "Europe/London",
+    'tokenExpiresHours'     => env('APP_TOKEN_EXPIRES_HOURS', 24),
+    'simulateMovement'      => env('APP_SIMULATE_MOVEMENT', false),
+    'maintenanceAllowedIps' => explode(',', env('APP_MAINTENANCE_ALLOWED_IPS', '')),
+    'logRequest'            => env('APP_LOG_REQUEST', false),
+    'key'                   => env('APP_KEY', 'Q4h0V~7?015I;=41kF1d#o<4^L9}7f'),
+    'apiKey'                => env('API_KEY', '42010ff-266ee10-d8cfed-7670885-e368681-9fa8899-ba8f34d'),
+    'env'                   => env('APP_ENV', 'local'),
+    'url'                   => env('APP_URL', 'http://localhost'),
+    'locale'                => 'en',
+    'apiVersion'            => env('API_VERSION', 1),
+    'rateLimit'             => env("APP_RATE_LIMIT", true),
+    'paginateDefault'       => env('APP_PAGINATE_DEFAULT', 50),
+    'mockUserId'            => env('APP_MOCK_USER_ID', false),
+];
